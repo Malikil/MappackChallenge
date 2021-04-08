@@ -1,15 +1,16 @@
+import { Command, CommandArg } from "./types";
+
 /**
  * Validates and converts a string into an args object based on the provided
  * expected args
- * @param {{
- *  arg: string,
- *  required: boolean
- * }[]} expected 
- * @param {string} actual 
  */
-function validateArgs(expected, actual) {
+export function validateArgs(expected: CommandArg[], actual: string) {
     const cmdargs = getArgs(actual).slice(1);
-    const validation = {
+    const validation: {
+        rejected: boolean,
+        args: object,
+        error?: string
+    } = {
         rejected: false,
         args: {}
     };
@@ -66,19 +67,8 @@ function validateArgs(expected, actual) {
 
 /**
  * Constructs a useage string for a set of expected arguments
- * @param {{
- *  name: string,
- *  help: string,
- *  args?: {
- *      arg: string,
- *      required: boolean,
- *      name?: string,
- *      description?: string
- *  }[],
- *  alias?: string[]
- * }} command Name of the command
  */
-function usageString(command) {
+export function usageString(command: Command) {
     const seen = [];
     let header = "";
     let description = "";
@@ -122,7 +112,7 @@ function usageString(command) {
 
 const valid = {
     map: {
-        validate(mapString) {
+        validate(mapString: any) {
             // If link is already a number then nothing needs to be done
             if (isNaN(mapString))
             {
@@ -151,14 +141,13 @@ const valid = {
 
 /**
  * Splits a string into args
- * @param {string} s 
  */
-function getArgs(s)
+function getArgs(s: string)
 {
     // Handle multiple lines
     let lines = s.split('\n');
     return lines.reduce((arr, str) => {
-        let args = str.match(/\\?.|^$/g).reduce((p, c) => {
+        let args = str.match(/\\?.|^$/g).reduce((p: {a: string[], quote?: any }, c) => {
             if (c === '"')
                 p.quote ^= 1;
             else if (!p.quote && c === ' ')
@@ -170,10 +159,4 @@ function getArgs(s)
         }, { a: [''] }).a;
         return arr.concat(args.reduce((p, c) => c ? p.concat(c) : p, []));
     }, []);
-    //str.match(/(?:[^\s"]+|"[^"]*")+/g);
-}
-
-module.exports = {
-    validateArgs,
-    usageString
 }

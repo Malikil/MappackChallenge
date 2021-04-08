@@ -1,15 +1,21 @@
-const Discord = require('discord.js');
+import Discord = require('discord.js');
+import fs = require('fs');
+import validator = require('./validator');
+
+import { inspect } from 'util';
+import { Command } from './types';
+
 const client = new Discord.Client();
 
 // Load commands
-client.commands = new Discord.Collection();
+const commands = new Discord.Collection<string, Command>();
 fs.readdir('./commands',
     (_, folders) => folders.forEach(folder => {
         fs.readdir(`./commands/${folder}`,
             (_, files) => {
                 files.filter(f => f.endsWith('.js')).forEach(file => {
-                    const command = require(`./commands/${folder}/${file}`);
-                    client.commands.set(command.name, command);
+                    const command = <Command>require(`./commands/${folder}/${file}`);
+                    commands.set(command.name, command);
                 });
             }
         );
@@ -31,8 +37,8 @@ client.on('message', msg => {
     // Handle commands
     const simpleArgs = msg.content.slice(1).split(' ');
     const commandName = simpleArgs.shift().toLowerCase();
-    const command = client.commands.get(commandName)
-        || client.commands.find(comm => comm.alias && comm.alias.includes(commandName));
+    const command = commands.get(commandName)
+        || commands.find(comm => comm.alias && comm.alias.includes(commandName));
 
     if (command) {
         // Verify permissions
@@ -41,7 +47,7 @@ client.on('message', msg => {
             if (!member)
                 return msg.channel.send("This command is only available in the server");
             const roles = member.roles.cache;
-            if (!command.permissions.every(perm => roles.has(perm)))
+            if (!command.permissions.every(perm => roles.has(perm.toString())))
                 return msg.channel.send("You don't have the required role to access this command");
         }
         // Validate args
@@ -54,7 +60,7 @@ client.on('message', msg => {
             console.error(err);
             msg.channel.send("Malikil did a stupid, and so the bot broke. " +
                 "Please tell him what you were trying to do and send him this:\n" +
-                "```" + util.inspect(err).slice(0, 1000) + "...```");
+                "```" + inspect(err).slice(0, 1000) + "...```");
         });
     }
 });
