@@ -42,8 +42,8 @@ async function addPlayer(p: DbPlayer) {
     return (await db.collection('players').insertOne(p)).result;
 }
 
-function removePlayer(discordid: string) {
-    return db.collection('players').deleteOne({ discordid });
+async function removePlayer(discordid: string) {
+    return (await db.collection('players').deleteOne({ discordid })).result;
 }
 
 function getPlayer(playerid: string | number): Promise<DbPlayer> {
@@ -66,7 +66,7 @@ function map(action: (p: DbPlayer) => any) {
     return db.collection('players').find().map(action);
 }
 
-function updateAll(players: DbPlayer[]) {
+async function updateAll(players: DbPlayer[]) {
     return db.collection('players').bulkWrite(players.map(p => ({
         updateOne: {
             filter: {

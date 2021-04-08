@@ -24,7 +24,7 @@ export interface Command {
     args?: CommandArg[],
     alias?: string[],
     skipValidation?: boolean,
-    run: (msg: Message, args: object) => Promise<any>
+    run: (msg: Message, args?: object) => Promise<any>
 };
 
 export interface Validator {
