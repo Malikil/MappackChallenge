@@ -9,14 +9,16 @@ const client = new Discord.Client();
 
 // Load commands
 const commands = new Discord.Collection<string, Command>();
-fs.readdir('./commands',
+fs.readdir('./dist/commands',
     (_, folders) => folders.forEach(folder => {
-        fs.readdir(`./commands/${folder}`,
+        fs.readdir(`./dist/commands/${folder}`,
             (_, files) => {
-                files.filter(f => f.endsWith('.js')).forEach(file => {
-                    const command = <Command>require(`./commands/${folder}/${file}`);
-                    commands.set(command.name, command);
-                });
+                files.filter(f => f.endsWith('.js')).forEach(file =>
+                    import(`./commands/${folder}/${file}`)
+                    .then(com => new com.default())
+                    .then((command: Command) => commands.set(command.name, command))
+                    .catch(err => console.error(err))
+                );
             }
         );
     })
@@ -39,7 +41,6 @@ client.on('message', msg => {
     const commandName = simpleArgs.shift().toLowerCase();
     const command = commands.get(commandName)
         || commands.find(comm => comm.alias && comm.alias.includes(commandName));
-
     if (command) {
         // Verify permissions
         if (command.permissions && command.permissions.length > 0) {

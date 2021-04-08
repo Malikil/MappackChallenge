@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon --exec \"npm run devcompile\" -e ts,js",
-    "start": "nodemon --exec \"npm run compile\" -e ts,js",
+    "test": "nodemon --exec \"npm run devcompile\" -e ts",
+    "start": "nodemon --exec \"npm run compile\" -e ts",
     "postinstall": "tsc",
     "devcompile": "tsc && heroku local -f Procfile.test",
     "compile": "tsc && heroku local"
