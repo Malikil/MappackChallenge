@@ -58,14 +58,6 @@ function getPlayer(playerid: string | number): Promise<DbPlayer> {
     return db.collection('players').findOne(query);
 }
 
-function forEach(action: (p: DbPlayer) => void) {
-    return db.collection('players').find().forEach(action);
-}
-
-function map(action: (p: DbPlayer) => any) {
-    return db.collection('players').find().map(action);
-}
-
 async function updateAll(players: DbPlayer[]) {
     return db.collection('players').bulkWrite(players.map(p => ({
         updateOne: {
@@ -82,11 +74,31 @@ async function updateAll(players: DbPlayer[]) {
     })));
 }
 
+//#region ========== Array-like Functions ==========
+function forEach(action: (p: DbPlayer) => void) {
+    return db.collection('players').find().forEach(action);
+}
+
+function map(action: (p: DbPlayer) => any) {
+    return db.collection('players').find().map(action).toArray();
+}
+
+async function filter(predicate: (p: DbPlayer) => boolean) {
+    const results: DbPlayer[] = [];
+    await db.collection('players').find().forEach(p => {
+        if (predicate(p))
+            results.push(p);
+    });
+    return results;
+}
+//#endregion
+
 export default {
     addPlayer,
     removePlayer,
     getPlayer,
     forEach,
     map,
+    filter,
     updateAll
 };
