@@ -14,5 +14,9 @@
   "dependencies": {
     "discord.js": "^12.5.3",
     "mongodb": "^3.6.6"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^3.6.12",
+    "@types/node": "^14.14.37"
   }
 }
