@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon --exec \"heroku local -f Procfile.test\" -e js",
-    "start": "nodemon --exec \"heroku local\" -e js",
-    "postinstall": "tsc"
+    "test": "nodemon --exec \"npm run devcompile\" -e ts,js",
+    "start": "nodemon --exec \"npm run compile\" -e ts,js",
+    "postinstall": "tsc",
+    "devcompile": "tsc && heroku local -f Procfile.test",
+    "compile": "tsc && heroku local"
   },
   "keywords": [],
   "author": "Eric",

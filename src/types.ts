@@ -5,5 +5,5 @@ export interface DbPlayer {
     scores: {
         score: number,
         beatmap: number
-    }
+    }[]
 };

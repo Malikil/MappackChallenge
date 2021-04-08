@@ -1,5 +1,6 @@
+# Files for testing locally
 Procfile.test
-src/test.js
+src/test.ts
 
 # Logs
 logs
