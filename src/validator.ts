@@ -1,4 +1,4 @@
-import { Command, CommandArg } from "./types";
+import { Command, CommandArg, Validator } from "./types";
 
 /**
  * Validates and converts a string into an args object based on the provided
@@ -110,32 +110,25 @@ export function usageString(command: Command) {
     return `Usage: !${command.name}${header}\n${command.description}\n${description}${alias}`;
 }
 
-const valid = {
-    map: {
-        validate(mapString: any) {
-            // If link is already a number then nothing needs to be done
-            if (isNaN(mapString))
-            {
-                // If the link isn't to a beatmap, then ignore it
-                // If the link is a /s/ link, ignore it
-                // ...ppy.sh/beatmapsets...
-                // ...ppy.sh/b/###
-                if (mapString && mapString.includes("sh/b"))
-                {
-                    // Get everything after the last slash, this should be the beatmap id
-                    mapString = mapString.substring(mapString.lastIndexOf("/") + 1);
-                    // The parseInt function will convert the beginning of a string to a number
-                    // until it finds a non-number character
-                    mapString = parseInt(mapString);
+const valid: { [key: string]: Validator } = {
+    osuid: {
+        validate(arg: string): number | string {
+            // If anything isn't a number
+            if (arg.search(/\D/) > -1) {
+                // This should account for both old site and new site
+                if (arg.includes('ppy.sh/u')) {
+                    let match = arg.match(/[0-9]+/);
+                    if (match)
+                        return parseInt(match[0]);
                 }
                 else
-                    return undefined;
+                    return arg;
             }
-        
-            return mapString | 0;
+            else
+                return parseInt(arg);
         },
-        description: "Beatmap id or link",
-        error: "Couldn't recognise beatmap id"
+        description: "Osu username, id, or profile link",
+        error: "Could not parse osu id"
     }
 }
 

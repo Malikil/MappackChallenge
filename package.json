@@ -8,17 +8,19 @@
     "start": "nodemon --exec \"npm run compile\" -e ts",
     "postinstall": "tsc",
     "devcompile": "tsc && heroku local -f Procfile.test",
-    "compile": "tsc && heroku local"
+    "compile": "tsc && heroku local || exit 1"
   },
   "keywords": [],
   "author": "Eric",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.5.3",
-    "mongodb": "^3.6.6"
+    "mongodb": "^3.6.6",
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@types/mongodb": "^3.6.12",
-    "@types/node": "^14.14.37"
+    "@types/node": "^14.14.37",
+    "@types/node-fetch": "^2.5.10"
   }
 }

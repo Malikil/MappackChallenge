@@ -7,10 +7,10 @@ export default class implements Command {
     name = "help";
     description = "Shows available commands. " +
         "Use !help [command] for more details about the command";
-    args: [
+    args = [
         { arg: 'any', name: 'command', description: "The command to get the details of" }
     ];
-    alias: [ "commands" ];
+    alias = [ "commands" ];
 
     run = async function (msg: Message, { command }: { command: string }) {
         const commandFolders = fs.readdirSync('./dist/commands');
@@ -22,10 +22,11 @@ export default class implements Command {
                 if (file === "help.js")
                     return <Command>this;
                 else
-                    return <Command>require(`../${folder}/${file}`);
+                    return <Command>new (require(`../${folder}/${file}`).default)();
             });
             commands[folder] = subCommands;
         });
+        console.log(commands);
         // If a command is given, find that command and show the description.
         let resultStr: string;
         if (command)

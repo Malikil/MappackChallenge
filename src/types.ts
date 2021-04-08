@@ -11,7 +11,7 @@ export interface DbPlayer {
 };
 
 export interface CommandArg {
-    arg: 'any' | 'map',
+    arg: string,
     required?: boolean,
     name?: string,
     description?: string
@@ -25,4 +25,10 @@ export interface Command {
     alias?: string[],
     skipValidation?: boolean,
     run: (msg: Message, args: object) => Promise<any>
+};
+
+export interface Validator {
+    description: string,
+    error: string,
+    validate: (arg: string) => unknown
 };

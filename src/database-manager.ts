@@ -11,24 +11,59 @@ const client = new MongoClient(uri, {
 });
 
 var db: Db;
-export const ready: Promise<true> = new Promise((resolve, reject) => {
+export const ready: Promise<boolean> = new Promise<boolean>((resolve, reject) => {
     client.connect(err => {
         if (err)
-            return console.log(err);
+            return reject(err);
         else
             console.log("Connected to mongodb");
 
         db = client.db('packdb');
         resolve(true);
     });
+}).catch(err => {
+    console.error(err);
+    return false;
 });
 
-function addPlayer(p: DbPlayer) {
-    return db.collection('players').insertOne(p);
+/**
+ * Prepares a string to be used as the match in a regex match
+ */
+ function regexify(str: string, options?: string)
+ {
+     str = str.replace(/_/g, "(?: |_)")
+         .replace('[', '\\[')
+         .replace(']', "\\]")
+         .replace('+', "\\+");
+     return new RegExp(`^${str}$`, options);
+ }
+
+async function addPlayer(p: DbPlayer) {
+    return (await db.collection('players').insertOne(p)).result;
+}
+
+function removePlayer(discordid: string) {
+    return db.collection('players').deleteOne({ discordid });
+}
+
+function getPlayer(playerid: string | number): Promise<DbPlayer> {
+    const query: { $or: { [key: string]: any }[] } = {
+        $or: [
+            { osuid: playerid },
+            { discordid: playerid }
+        ]
+    };
+    if (typeof playerid === "string")
+        query.$or.push({ osuname: regexify(playerid) });
+    return db.collection('players').findOne(query);
 }
 
 function forEach(action: (p: DbPlayer) => void) {
     return db.collection('players').find().forEach(action);
+}
+
+function map(action: (p: DbPlayer) => any) {
+    return db.collection('players').find().map(action);
 }
 
 function updateAll(players: DbPlayer[]) {
@@ -49,6 +84,9 @@ function updateAll(players: DbPlayer[]) {
 
 export default {
     addPlayer,
+    removePlayer,
+    getPlayer,
     forEach,
+    map,
     updateAll
 };
