@@ -1,3 +1,6 @@
+Procfile.test
+test.js
+
 # Logs
 logs
 *.log

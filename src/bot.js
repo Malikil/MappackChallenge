@@ -20,11 +20,11 @@ client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
 });
 
-/*client.on('message', msg => {
+client.on('message', msg => {
     if (msg.author.bot || msg.content[0] !== '~')
         return;
-    if (msg.content === "!ping")
-        return msg.reply("Pong!");
+    if (msg.content === "~ping")
+        return msg.reply("Pong~");
 
     console.log(`\x1b[36mReceived message:\x1b[0m ${msg.content}`);
 
@@ -57,4 +57,10 @@ client.on('ready', () => {
                 "```" + util.inspect(err).slice(0, 1000) + "...```");
         });
     }
-});*/
+});
+
+client.login(process.env.DISCORD_TOKEN)
+.catch(err => {
+    console.error("Discord bot crashed");
+    console.error(err);
+});

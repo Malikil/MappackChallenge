@@ -19,3 +19,7 @@ client.connect(err => {
 
     db = client.db('packdb');
 });
+
+function addPlayer() {
+    
+}
