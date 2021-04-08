@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon --exec \"heroku local -f Procfile.test\" -e js",
-    "start": "nodemon --exec \"heroku local\" -e js"
+    "start": "nodemon --exec \"heroku local\" -e js",
+    "postinstall": "tsc"
   },
   "keywords": [],
   "author": "Eric",

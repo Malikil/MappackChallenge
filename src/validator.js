@@ -1,5 +1,3 @@
-const MODS = require('./helpers/bitwise');
-
 /**
  * Validates and converts a string into an args object based on the provided
  * expected args

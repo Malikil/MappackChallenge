@@ -1,4 +1,5 @@
 const { MongoClient, Db } = require('mongodb');
+const DbPlayer = require('./types/db-player');
 
 const mongoUser = process.env.MONGO_USER;
 const mongoPass = process.env.MONGO_PASS;
@@ -20,6 +21,39 @@ client.connect(err => {
     db = client.db('packdb');
 });
 
-function addPlayer() {
-    
+/**
+ * @param {import('./types/db-player')} p
+ */
+function addPlayer(p) {
+    db.collection('players').insertOne(p);
 }
+
+/**
+ * @param {function(import('./types/db-player')): void} action
+ */
+function forEach(action) {
+    return db.collection('players').find().forEach(action);
+}
+
+/**
+ * @param {DbPlayer[]} players 
+ */
+function updateAll(players) {
+    return db.collection('players').bulkWrite(players.map(p => (
+        { updateOne: {
+            filter: {
+                osuid: p.osuid
+            },
+            update: {
+                osuname: p.osuname,
+                scores: p.scores
+            }
+        } }
+    )));
+}
+
+module.exports = {
+    addPlayer,
+    forEach,
+    updateAll
+};
