@@ -4,6 +4,7 @@ import validator = require('./validator');
 
 import { inspect } from 'util';
 import { Command } from './types';
+import actions from './actions';
 
 const client = new Discord.Client();
 
@@ -26,6 +27,7 @@ fs.readdir('./dist/commands',
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
+    actions.startActions();
 });
 
 client.on('message', msg => {

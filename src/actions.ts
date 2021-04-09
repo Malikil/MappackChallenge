@@ -1,8 +1,13 @@
-import { seconds, hours } from './helpers/mstime';
+import { hours, days } from './helpers/mstime';
 const OSUKEY = process.env.OSUKEY;
 
 export function startActions() {
     setInterval(updateScores, hours(12));
+    intervalFrom(
+        nextPack,
+        new Date(Date.UTC(2021, 5, 3)),
+        days(7)
+    );
 };
 export default { startActions };
 
@@ -33,4 +38,8 @@ function updateScores() {
     // Get maps from maplist
     // Get scores for each player for each map
     // If a higher score is found, update the player's db entry
+}
+
+function nextPack() {
+    // Update the database to use the next mappack
 }

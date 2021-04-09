@@ -135,7 +135,7 @@ const valid: { [key: string]: Validator } = {
 /**
  * Splits a string into args
  */
-function getArgs(s: string)
+export function getArgs(s: string): string[]
 {
     // Handle multiple lines
     let lines = s.split('\n');

@@ -50,8 +50,9 @@ export default class Score {
 
     static async getFromApi(mapid: number, user?: number | string, mods?: Mods) {
         const scores = await nfetch(`https://osu.ppy.sh/api/get_scores?k=${OSUKEY}&b=${mapid}${
-                    user ? `&u=${user}` : ""
-                }&mods=${mods & Mods.DifficultyMods}`)
+                    user ? `&u=${user}` : ""}${
+                    mods ? `&mods=${mods & Mods.DifficultyMods}` : ""
+                }`)
             .then((res): Promise<BanchoScore[]> => res.json());
         if (scores)
             return scores.map(s => new Score(s));

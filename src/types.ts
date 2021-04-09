@@ -10,6 +10,30 @@ export interface DbPlayer {
     }[]
 };
 
+export enum PackState {
+    Past = "PAST",
+    Current = "CURRENT",
+    Upcoming = "UPCOMING"
+};
+export interface MappackMap {
+    mapId: number;
+    version: string;
+    value: number;
+};
+export interface MappackMapset {
+    setId: number;
+    artist: string;
+    title: string;
+    versionIds: MappackMap[];
+};
+export interface DbMappack {
+    packNo: number;
+    packName: string;
+    downloadUrl: string;
+    maps: MappackMapset[];
+    state: PackState;
+};
+
 export interface CommandArg {
     arg: string,
     required?: boolean,

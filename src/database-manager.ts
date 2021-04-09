@@ -1,5 +1,5 @@
 import { MongoClient, Db } from 'mongodb';
-import { DbPlayer } from './types';
+import { DbMappack, DbPlayer, PackState } from './types';
 
 const mongoUser = process.env.MONGO_USER;
 const mongoPass = process.env.MONGO_PASS;
@@ -73,6 +73,50 @@ async function updateAll(players: DbPlayer[]) {
         }
     })));
 }
+
+//#region Map pack management
+export async function addPack(pack: DbMappack) {
+    return (await db.collection('packs').insertOne(pack)).result;
+};
+
+export async function getCurrentPack(): Promise<DbMappack> {
+    return db.collection('packs').findOne({
+        state: PackState.Current
+    });
+};
+
+export async function getPackCounts(): Promise<{
+    [PackState.Past]: number,
+    [PackState.Current]: number,
+    [PackState.Upcoming]: number
+}> {
+    // Prepare results object
+    const result = {
+        [PackState.Past]: 0,
+        [PackState.Current]: 0,
+        [PackState.Upcoming]: 0
+    };
+    await db.collection('packs').find().forEach((p: DbMappack) =>
+        result[p.state]++
+    );
+    return result;
+};
+
+export async function moveToNextPack() {
+    // Set the currently active pack(s) to past
+    // Don't assume only one pack is current.
+    const pastRes = await db.collection('packs').updateMany(
+        { state: PackState.Current },
+        { $set: { state: PackState.Past } }
+    );
+    // Set any upcoming pack to current
+    const upcoResult = await db.collection('packs').updateOne(
+        { state: PackState.Upcoming },
+        { $set: { state: PackState.Current } }
+    );
+    return !!pastRes.result.ok && !!upcoResult.result.ok;
+};
+//#endregion
 
 //#region ========== Array-like Functions ==========
 function forEach(action: (p: DbPlayer) => void) {
