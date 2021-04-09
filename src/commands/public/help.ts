@@ -26,7 +26,6 @@ export default class implements Command {
             });
             commands[folder] = subCommands;
         });
-        console.log(commands);
         // If a command is given, find that command and show the description.
         let resultStr: string;
         if (command)

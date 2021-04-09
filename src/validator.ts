@@ -107,7 +107,7 @@ export function usageString(command: Command) {
         });
     if (command.alias)
         alias = "Aliases: " + command.alias.reduce((p, c) => `${p}, ${c}`);
-    return `Usage: !${command.name}${header}\n${command.description}\n${description}${alias}`;
+    return `Usage: ~${command.name}${header}\n${command.description}\n${description}${alias}`;
 }
 
 const valid: { [key: string]: Validator } = {

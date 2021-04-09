@@ -24,10 +24,9 @@ export interface MappackMapset {
     setId: number;
     artist: string;
     title: string;
-    versionIds: MappackMap[];
+    versions: MappackMap[];
 };
 export interface DbMappack {
-    packNo: number;
     packName: string;
     downloadUrl: string;
     maps: MappackMapset[];

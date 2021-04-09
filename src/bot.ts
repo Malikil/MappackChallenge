@@ -34,7 +34,7 @@ client.on('message', msg => {
     if (msg.author.bot || msg.content[0] !== '~')
         return;
     if (msg.content === "~ping")
-        return msg.reply("Pong~");
+        return msg.reply("Pong!~");
 
     console.log(`\x1b[36mReceived message:\x1b[0m ${msg.content}`);
 

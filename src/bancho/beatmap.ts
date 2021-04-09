@@ -140,11 +140,17 @@ export default class Beatmap {
     }
 
     static async buildFromApi(mapid: number, mods = Mods.None) {
-        let beatmap = await nfetch(`https://osu.ppy.sh/api/get_beatmaps?k=${OSUKEY}&b=${mapid}&mods=${mods & Mods.DifficultyMods}`)
-            .then(res => res.json())
-            .then((data: BanchoBeatmap[]) => data[0]);
+        const beatmap = await nfetch(`https://osu.ppy.sh/api/get_beatmaps?k=${OSUKEY}&b=${mapid}&mods=${mods & Mods.DifficultyMods}`)
+            .then((res): Promise<BanchoBeatmap[]> => res.json())
+            .then(data => data[0]);
         if (beatmap)
             return new Beatmap(beatmap, mods);
         // Undefined if the beatmap doesn't exist
+    }
+
+    static async getMapset(mapsetId: number) {
+        const maps = await nfetch(`https://osu.ppy.sh/api/get_beatmaps?k=${OSUKEY}&s=${mapsetId}`)
+            .then((res): Promise<BanchoBeatmap[]> => res.json());
+        return maps.map(m => new Beatmap(m));
     }
 }
