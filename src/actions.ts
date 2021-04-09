@@ -2,11 +2,11 @@ import { hours, days } from './helpers/mstime';
 
 export function startActions() {
     setInterval(updateScores, hours(12));
-    /*intervalFrom(
+    intervalFrom(
         nextPack,
-        new Date(Date.UTC(2021, 5, 3)),
+        new Date(Date.UTC(2021, 4, 3)),
         days(7)
-    );//*/
+    );
 };
 export default { startActions };
 
