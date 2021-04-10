@@ -31,18 +31,22 @@ export default class implements Command {
         resultEmbed.addField(
             "Top 10 Leaderboard",
             curResults.slice(0, 10).reduce((p, c, i) => 
-                `${p}\n${i}. ${c.player} - ${c.score}`
-            , '')
+                `${p}\n**${i}.** ${c.player} - ${c.score}`
+            , '') || '\u200b'
         );
         // Display the current player's rank
-        const pos = curResults.findIndex(p => p.player === currentPlayer.osuname);
-        const score = currentPlayer.scores.reduce((p, c) => 
-            p + c.score
-        , 0);
-        resultEmbed.addField(
-            "Your Rank",
-            `${pos}. ${currentPlayer.osuname} - ${score}`
-        );
+        if (currentPlayer) {
+            const pos = curResults.findIndex(p => p.player === currentPlayer.osuname);
+            if (pos > -1) {
+                const score = currentPlayer.scores.reduce((p, c) => 
+                    p + c.score
+                , 0);
+                resultEmbed.addField(
+                    "Your Rank",
+                    `**${pos}.** ${currentPlayer.osuname} - ${score}`
+                );
+            }
+        }
 
         resultEmbed.setFooter(`${curResults.length} plyers`).setTimestamp();
         return msg.channel.send(resultEmbed);
