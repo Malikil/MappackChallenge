@@ -27,7 +27,7 @@ export default class implements Command {
                     score: scoreSum
                 };
             }).filter(p => p.score > 0);
-        curResults.sort((a, b) => a.score - b.score);
+        curResults.sort((a, b) => b.score - a.score);
         const resultEmbed = new MessageEmbed()
             .setTitle("Current Standings")
             .setColor("#0044aa");
