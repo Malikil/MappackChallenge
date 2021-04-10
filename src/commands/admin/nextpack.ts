@@ -3,6 +3,7 @@ import { Command, MappackMapset, PackState } from "../../types";
 import { getArgs, usageString } from '../../validator';
 import Beatmap from '../../bancho/beatmap';
 import { addPack } from '../../database-manager';
+import { Mode } from "../../bancho/enums";
 
 export default class implements Command {
     name = "nextpack";
@@ -11,6 +12,7 @@ export default class implements Command {
     args = [
         { arg: 'any', name: "pack", description: "The beatmap pack name", required: true },
         { arg: 'any', name: "downloadUrl", description: "Where can the pack be downloaded from", required: true },
+        { arg: 'mode', required: true },
         { arg: 'any', name: "mapsetIds", description: "The __mapset__ ids contained in the pack", required: true }
     ];
     skipValidation = true;
@@ -21,12 +23,16 @@ export default class implements Command {
         // Make sure there are enough args
         if (args.length < 3)
             return msg.channel.send(usageString(this));
-        // Pack id and download url should be the first two args
+        // Pack id, download url, and mode should be the first args
         const packId = args.shift();
         const downloadUrl = args.shift();
+        const mode = Mode[args.shift()];
         // Make sure download url looks like a link
         if (!downloadUrl.match(/^https?:\/\//))
             return msg.channel.send("Invalid URL");
+        // Make sure mode is valid
+        if (isNaN(mode))
+            return msg.channel.send("Invalid mode");
 
         // Get the mapsets and parse them into the database format
         const maps = await Promise.all(args.map(
@@ -50,7 +56,7 @@ export default class implements Command {
             packName: packId,
             downloadUrl,
             state: PackState.Upcoming,
-            maps
+            maps, mode
         });
         if (result.ok)
             return msg.channel.send(`Added ${packId} as an upcoming mappack`);
