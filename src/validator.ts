@@ -1,3 +1,4 @@
+import { Mode } from "./bancho/enums";
 import { Command, CommandArg, Validator } from "./types";
 
 /**
@@ -129,6 +130,19 @@ const valid: { [key: string]: Validator } = {
         },
         description: "Osu username, id, or profile link",
         error: "Could not parse osu id"
+    },
+    mode: {
+        description: `Gamemode from "osu | taiko | ctb | mania" or the gamemode's number.`,
+        error: "Gamemode not recognised",
+        validate(arg: string): Mode {
+            if (isNaN(Number(arg)))
+                return Mode[arg];
+            else { // Is a number
+                const m = Mode[Number(arg)];
+                if (m)
+                    return Mode[m];
+            }
+        }
     }
 }
 

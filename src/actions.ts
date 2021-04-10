@@ -1,7 +1,7 @@
 import { hours, days, minutes } from './helpers/mstime';
-import db, { getCurrentPack, moveToNextPack, ready as dbReady } from './database-manager';
+import db, { getCurrentPacks, moveToNextPack, ready as dbReady } from './database-manager';
 import Score from './bancho/score';
-import { DbPlayer, MappackMap } from './types';
+import { DbPlayer, MappackMap, MappackMapset } from './types';
 import Mods from './bancho/mods';
 import { Rank } from './bancho/enums';
 import { inspect } from 'util';
@@ -72,14 +72,16 @@ function calc(m: MappackMap, s: Score) {
     return pointValue;
 }
 
-const TIMERMOD = 2;
+const TIMER_TICKS = 4;
 async function updateScores() {
     console.log("Beginning update scores");
     // Get maps from maplist
-    const pack = await getCurrentPack();
+    const pack = (await getCurrentPacks()).reduce((arr, c) =>
+        arr.concat(c.maps)
+    , <MappackMapset[]>[]);
     // I just really realized how many api requests this is going to be.
     // Try adding some wait time between requests so it's not absolutely insane
-    const finalTime = pack.maps.reduce((timer, mapset) => {
+    const finalTime = pack.reduce((timer, mapset) => {
         mapset.versions.forEach((m, i) =>
             setTimeout(async (map: MappackMap) => {
                 console.log(`Updating scores for ${map.mapId} ${map.version}`);
@@ -111,11 +113,11 @@ async function updateScores() {
                 // Now players can be updated
                 if (updates.length > 0)
                     db.updateAll(updates);
-            }, minutes((timer + i) / TIMERMOD), m)
+            }, minutes((timer + i) / TIMER_TICKS), m)
         );
         return timer + mapset.versions.length;
     }, 0);
-    setTimeout(() => console.log(`Score update finished`), minutes((finalTime + 1) / TIMERMOD));
+    setTimeout(() => console.log(`Score update finished`), minutes((finalTime + 1) / TIMER_TICKS));
     return finalTime;
 }
 
@@ -124,7 +126,9 @@ function nextPack(channel?: TextChannel) {
         channel.send("Beginning final scores update and switching to next mappack!");
     updateScores().then(async timer => {
         if (channel) {
-            const oldPack = (await getCurrentPack()).maps
+            const oldPack = (await getCurrentPacks()).reduce((arr, c) =>
+            arr.concat(c.maps)
+        , <MappackMapset[]>[])
                 .reduce((arr, mp) => arr.concat(mp.versions), <MappackMap[]>[])
                 .map(m => m.mapId);
             setTimeout(async () => {
@@ -158,7 +162,7 @@ function nextPack(channel?: TextChannel) {
                 );
 
                 channel.send(resultEmbed);
-            }, minutes((timer + 1) / TIMERMOD));
+            }, minutes((timer + 1) / TIMER_TICKS));
         }
         console.log("Switching to next mappack");
         moveToNextPack();
@@ -169,7 +173,9 @@ async function prunePlayers() {
     // Remove players who have no scores
     console.log(`Removed ${(await db.prunePlayers()).n} inactive players`);
     // Clear maps which aren't on the list
-    const maplist = (await getCurrentPack()).maps
+    const maplist = (await getCurrentPacks()).reduce((arr, c) =>
+        arr.concat(c.maps)
+    , <MappackMapset[]>[])
         .reduce((arr, mp) => arr.concat(mp.versions), <MappackMap[]>[])
         .map(m => m.mapId);
     const updates = await db.map(player => {

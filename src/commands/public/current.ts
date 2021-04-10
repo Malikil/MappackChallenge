@@ -1,13 +1,19 @@
 import { Message, MessageEmbed } from "discord.js";
 import { Command } from "../../types";
 import { getCurrentPack } from '../../database-manager';
+import { Mode } from "../../bancho/enums";
 
 export default class implements Command {
     name = "current";
     description = "Displays the current mappack";
+    args = [
+        { arg: 'mode', required: false }
+    ];
     alias = [ "pack" ];
-    run = async (msg: Message) => {
-        const curPack = await getCurrentPack();
+    run = async (msg: Message, { mode }: { mode: Mode }) => {
+        if (!mode)
+            mode = Mode.osu;
+        const curPack = await getCurrentPack(mode);
         const resultEmbed = new MessageEmbed()
             .setTitle(curPack.packName)
             .setColor(`#${(Math.random() * 0xFFFFFF + 1).toString(16)}`)

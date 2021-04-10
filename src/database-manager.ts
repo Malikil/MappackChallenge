@@ -1,4 +1,5 @@
 import { MongoClient, Db } from 'mongodb';
+import { Mode } from './bancho/enums';
 import { DbMappack, DbPlayer, PackState } from './types';
 
 const mongoUser = process.env.MONGO_USER;
@@ -83,10 +84,16 @@ export async function addPack(pack: DbMappack) {
     return (await db.collection('packs').insertOne(pack)).result;
 };
 
-export async function getCurrentPack(): Promise<DbMappack> {
+export async function getCurrentPack(mode: Mode): Promise<DbMappack> {
     return db.collection('packs').findOne({
-        state: PackState.Current
+        state: PackState.Current, mode
     });
+};
+
+export async function getCurrentPacks(): Promise<DbMappack[]> {
+    return db.collection('packs').find({
+        state: PackState.Current
+    }).toArray();
 };
 
 export async function getPackCounts(): Promise<{
@@ -108,16 +115,41 @@ export async function getPackCounts(): Promise<{
 
 export async function moveToNextPack() {
     // Set the currently active pack(s) to past
-    // Don't assume only one pack is current.
     const pastRes = await db.collection('packs').updateMany(
         { state: PackState.Current },
         { $set: { state: PackState.Past } }
     );
-    // Set any upcoming pack to current
-    const upcoResult = await db.collection('packs').updateOne(
-        { state: PackState.Upcoming },
-        { $set: { state: PackState.Current } }
-    );
+    // Set an upcoming pack to current for each mode
+    const upcoResult = await db.collection('packs').bulkWrite([
+        { updateOne: { filter: {
+                state: PackState.Upcoming,
+                mode: Mode.osu
+            }, update: { $set: {
+                state: PackState.Current
+            } } }
+        },
+        { updateOne: { filter: {
+                state: PackState.Upcoming,
+                mode: Mode.Taiko
+            }, update: { $set: {
+                state: PackState.Current
+            } } }
+        },
+        { updateOne: { filter: {
+                state: PackState.Upcoming,
+                mode: Mode.Catch
+            }, update: { $set: {
+                state: PackState.Current
+            } } }
+        },
+        { updateOne: { filter: {
+                state: PackState.Upcoming,
+                mode: Mode.Mania
+            }, update: { $set: {
+                state: PackState.Current
+            } } }
+        }
+    ]);
     return !!pastRes.result.ok && !!upcoResult.result.ok;
 };
 //#endregion

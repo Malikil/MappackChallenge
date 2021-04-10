@@ -1,4 +1,5 @@
 import { Message, RoleResolvable } from "discord.js";
+import { Mode } from "./bancho/enums";
 
 export interface DbPlayer {
     discordid: string,
@@ -31,6 +32,7 @@ export interface DbMappack {
     downloadUrl: string;
     maps: MappackMapset[];
     state: PackState;
+    mode: Mode;
 };
 
 export interface CommandArg {
