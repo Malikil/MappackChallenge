@@ -132,7 +132,7 @@ const valid: { [key: string]: Validator } = {
         error: "Could not parse osu id"
     },
     mode: {
-        description: `Gamemode from "osu | taiko | ctb | mania" or the gamemode's number.`,
+        description: `Gamemode from "osu | Taiko | Catch | Mania" or the gamemode's number.`,
         error: "Gamemode not recognised",
         validate(arg: string): Mode {
             if (isNaN(Number(arg)))

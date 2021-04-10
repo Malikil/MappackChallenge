@@ -10,9 +10,9 @@ export default class implements Command {
     alias = [ "leaders" ];
 
     run = async (msg: Message, { mode }: { mode: Mode }) => {
-        const packs = mode
-                ? [ await getCurrentPack(mode) ]
-                : await getCurrentPacks();
+        const packs = isNaN(mode)
+                ? await getCurrentPacks()
+                : [ await getCurrentPack(mode) ];
         const currentPlayer = await db.getPlayer(msg.author.id);
         const curResults: {
             player: string,
@@ -26,7 +26,7 @@ export default class implements Command {
                         )
                     );
                     if (pack)
-                        s[pack.mode] += c.score;
+                        s[pack.mode] = (s[pack.mode] || 0) + c.score;
                     return s;
                 }, <{ [mode: number]: number }>{});
                 return {
@@ -48,16 +48,17 @@ export default class implements Command {
         const ranks = packs.map((p, i) => {
             resultEmbed.addField(
                 `Top 10 ${titles[p.mode]}`,
-                curResults.sort((a, b) => b.scores[Mode.osu] - a.scores[Mode.osu])
-                    .slice(0, 10).reduce((p, c, i) => 
-                        `${p}\n**${i + 1}.** ${c.player} - ${c.scores[Mode.osu].toFixed(1)}`
+                curResults.sort((a, b) => b.scores[p.mode] - a.scores[p.mode])
+                    .filter(s => s.scores[p.mode])
+                    .slice(0, 10).reduce((str, c, i) => 
+                        `${str}\n**${i + 1}.** ${c.player} - ${c.scores[p.mode].toFixed(1)}`
                     , '') || '\u200b',
                 true
             );
             if (i % 3 === 1)
                 resultEmbed.addField("\u200b", "\u200b", true);
             if (currentPlayer) {
-                const pos = curResults.findIndex(pl => pl.player === currentPlayer.osuname);
+                const pos = curResults.findIndex(pl => pl.player === currentPlayer.osuname) + 1;
                 const score = currentPlayer.scores.reduce((s, c) => {
                     if (p.maps.find(m => m.versions.find(v => v.mapId === c.beatmap)))
                         return s + c.score;
@@ -75,7 +76,7 @@ export default class implements Command {
             resultEmbed.addField(
                 "Your Ranks",
                 ranks.map(r =>
-                    `**${titles[r.mode]}** ${r.pos}. - ${r.score}`
+                    `_${titles[r.mode]}_  **${r.pos}.** ${r.score.toFixed(1)}`
                 ).join("\n")
             );
         }
