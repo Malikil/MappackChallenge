@@ -12,12 +12,11 @@ export default class implements Command {
             .setTitle(curPack.packName)
             .setColor(`#${(Math.random() * 0xFFFFFF + 1).toString(16)}`)
             .setDescription(curPack.maps.reduce((p, m) =>
-                `${p}\n[${m.artist} - ${m.title}](https://osu.ppy.sh/beatmapsets/${m.setId})${
+                `${p}\n[${m.artist} - ${m.title}](https://osu.ppy.sh/beatmapsets/${m.setId}) - ${
                     m.versions.sort((a, b) => a.value - b.value).reduce((pv, v) => `${pv} | ${v.value}`, "").slice(2)
                 }`
             , ''))
-            .addField("\u200b", `[Download Mappack](${curPack.downloadUrl})`)
-            .setTimestamp();
+            .addField("\u200b", `[Download Mappack](${curPack.downloadUrl})`);
         return msg.channel.send(resultEmbed);
     };
 }

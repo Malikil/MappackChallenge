@@ -58,6 +58,10 @@ function getPlayer(playerid: string | number): Promise<DbPlayer> {
     return db.collection('players').findOne(query);
 }
 
+async function prunePlayers() {
+    return (await db.collection('players').deleteMany({ scores: { $size: 0 } })).result;
+}
+
 async function updateAll(players: DbPlayer[]) {
     return db.collection('players').bulkWrite(players.map(p => ({
         updateOne: {
@@ -141,6 +145,7 @@ export default {
     addPlayer,
     removePlayer,
     getPlayer,
+    prunePlayers,
     forEach,
     map,
     filter,

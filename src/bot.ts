@@ -27,7 +27,9 @@ fs.readdir('./dist/commands',
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
-    actions.startActions();
+    const announceChannel = client.channels.cache.get(process.env.CHANNEL_ANNOUNCE);
+    if (announceChannel && announceChannel.isText())
+        actions.startActions(announceChannel);
 });
 
 client.on('message', msg => {

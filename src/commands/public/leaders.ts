@@ -1,6 +1,6 @@
 import { Message, MessageEmbed } from "discord.js";
-import { Command } from "../../types";
-import db from '../../database-manager';
+import { Command, MappackMap } from "../../types";
+import db, { getCurrentPack } from '../../database-manager';
 
 export default class implements Command {
     name = "leaderboard";
@@ -8,30 +8,35 @@ export default class implements Command {
     alias = [ "leaders" ];
 
     run = async (msg: Message) => {
+        const maplist = (await getCurrentPack()).maps
+            .reduce((arr, mp) => arr.concat(mp.versions), <MappackMap[]>[])
+            .map(m => m.mapId);
         const currentPlayer = await db.getPlayer(msg.author.id);
         const curResults: {
             player: string,
             score: number
         }[] = (await db.filter(p => p.scores.length > 0))
             .map(p => {
-                let scoreSum = p.scores.reduce((s, c) => 
-                    s + c.score
-                , 0);
+                let scoreSum = p.scores.reduce((s, c) => {
+                    if (maplist.includes(c.beatmap))
+                        return s + c.score;
+                    return s;
+                }, 0);
                 return {
                     player: p.osuname,
                     score: scoreSum
                 };
-            });
+            }).filter(p => p.score > 0);
         curResults.sort((a, b) => a.score - b.score);
         const resultEmbed = new MessageEmbed()
             .setTitle("Current Standings")
-            .setColor("#0000ff");
+            .setColor("#0044aa");
 
         // Display the current top 10
         resultEmbed.addField(
             "Top 10 Leaderboard",
             curResults.slice(0, 10).reduce((p, c, i) => 
-                `${p}\n**${i}.** ${c.player} - ${c.score}`
+                `${p}\n**${i + 1}.** ${c.player} - ${c.score.toFixed(1)}`
             , '') || '\u200b'
         );
         // Display the current player's rank
@@ -43,7 +48,7 @@ export default class implements Command {
                 , 0);
                 resultEmbed.addField(
                     "Your Rank",
-                    `**${pos}.** ${currentPlayer.osuname} - ${score}`
+                    `**${pos + 1}.** ${currentPlayer.osuname} - ${score.toFixed(1)}`
                 );
             }
         }
