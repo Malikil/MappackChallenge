@@ -1,4 +1,4 @@
-import { Rank } from "./enums";
+import { Mode, Rank } from "./enums";
 import Mods from "./mods";
 import { BanchoScore } from "./types";
 import nfetch from 'node-fetch';
@@ -48,11 +48,12 @@ export default class Score {
         this.replay_available = !!parseInt(score.replay_available);
     }
 
-    static async getFromApi(mapid: number, user?: number | string, mods?: Mods) {
+    static async getFromApi(mapid: number, user?: number | string, mods?: Mods, mode?: Mode) {
         const scores = await nfetch(`https://osu.ppy.sh/api/get_scores?k=${OSUKEY}&b=${mapid}${
                     user ? `&u=${user}` : ""}${
-                    mods ? `&mods=${mods & Mods.DifficultyMods}` : ""
-                }`)
+                    mods || mods === 0 ? `&mods=${mods & Mods.DifficultyMods}` : ""}${
+                    mode ? `&m=${mode}` : ""
+                    }`)
             .then((res): Promise<BanchoScore[]> => res.json());
         if (scores)
             return scores.map(s => new Score(s));

@@ -3,7 +3,7 @@ import db, { getCurrentPacks, moveToNextPack, ready as dbReady } from './databas
 import Score from './bancho/score';
 import { DbPlayer, MappackMap, MappackMapset } from './types';
 import Mods from './bancho/mods';
-import { Rank } from './bancho/enums';
+import { Mode, Rank } from './bancho/enums';
 import { inspect } from 'util';
 import { DMChannel, MessageEmbed, NewsChannel, TextChannel } from 'discord.js';
 
@@ -76,14 +76,17 @@ const TIMER_TICKS = 4;
 async function updateScores() {
     console.log("Beginning update scores");
     // Get maps from maplist
-    const pack = (await getCurrentPacks()).reduce((arr, c) =>
+    const packsRaw = await getCurrentPacks();
+    const pack = packsRaw.reduce((arr, c) =>
         arr.concat(c.maps)
     , <MappackMapset[]>[]);
     // I just really realized how many api requests this is going to be.
     // Try adding some wait time between requests so it's not absolutely insane
     const finalTime = pack.reduce((timer, mapset) => {
+        // Find the current mode
+        const mapsetMode = packsRaw.find(p => p.maps.find(m => m.setId === mapset.setId)).mode;
         mapset.versions.forEach((m, i) =>
-            setTimeout(async (pm: MappackMap) => {
+            setTimeout(async (pm: MappackMap, mode: Mode) => {
                 console.log(`Beginning update for ${pm.mapId} ${pm.version}`);
                 // Get each player's score on the map, then update as needed
                 let i = 0;
@@ -94,13 +97,13 @@ async function updateScores() {
                         // I did with maps, but because the new updated value of a player is important
                         // I need to find a way to return it.
                         new Promise(resolve =>
-                            setTimeout(async (player: DbPlayer, map: MappackMap) => {
+                            setTimeout(async (player: DbPlayer, map: MappackMap, mapMode: Mode) => {
                                 console.log(`Looking ${player.osuname} on ${map.mapId} ${map.version}`);
                                 // If the player has an updated score, return them as a DbPlayer
                                 const oldIndex = player.scores.findIndex(s => s.beatmap === map.mapId);
                                 const oldScore = player.scores[oldIndex];
                                 console.log(`Old score is ${inspect(oldScore)}`);
-                                const newScores = await Score.getFromApi(map.mapId, player.osuid);
+                                const newScores = await Score.getFromApi(map.mapId, player.osuid, null, mapMode);
                                 if (newScores.length < 1)
                                     return resolve(null);
                                 // Find the highest new score
@@ -115,14 +118,14 @@ async function updateScores() {
                                 else
                                     return resolve(null);
                                 resolve(player);
-                            }, seconds(i++), pp, pm)
+                            }, seconds(i++), pp, pm, mode)
                         )
                     )
                 ).then((u: DbPlayer[]) => u.filter(p => p));
                 // Now players can be updated
                 if (updates.length > 0)
                     db.updateAll(updates);
-            }, minutes((timer + i) / TIMER_TICKS), m)
+            }, minutes((timer + i) / TIMER_TICKS), m, mapsetMode)
         );
         return timer + mapset.versions.length;
     }, 0);
