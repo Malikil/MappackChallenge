@@ -1,9 +1,9 @@
-import { hours, days, minutes } from './helpers/mstime';
+import { delay, seconds, hours, days, minutes } from './helpers/mstime';
 import db, { getCurrentPacks, moveToNextPack, ready as dbReady } from './database-manager';
 import Score from './bancho/score';
 import { DbPlayer, MappackMap, MappackMapset } from './types';
 import Mods from './bancho/mods';
-import { Mode, Rank } from './bancho/enums';
+import { Rank } from './bancho/enums';
 import { inspect } from 'util';
 import { DMChannel, MessageEmbed, NewsChannel, TextChannel } from 'discord.js';
 
@@ -83,32 +83,41 @@ async function updateScores() {
     // Try adding some wait time between requests so it's not absolutely insane
     const finalTime = pack.reduce((timer, mapset) => {
         mapset.versions.forEach((m, i) =>
-            setTimeout(async (map: MappackMap) => {
-                console.log(`Updating scores for ${map.mapId} ${map.version}`);
+            setTimeout(async (pm: MappackMap) => {
+                console.log(`Beginning update for ${pm.mapId} ${pm.version}`);
                 // Get each player's score on the map, then update as needed
+                let i = 0;
                 const updates = await Promise.all(
-                    await db.map(async (player): Promise<DbPlayer> => {
-                        console.log(`Looking for scores from ${player.osuname}`);
-                        // If the player has an updated score, return them as a DbPlayer
-                        const oldIndex = player.scores.findIndex(s => s.beatmap === map.mapId);
-                        const oldScore = player.scores[oldIndex];
-                        console.log(`Old score is ${inspect(oldScore)}`);
-                        const newScores = await Score.getFromApi(map.mapId, player.osuid);
-                        if (newScores.length < 1)
-                            return;
-                        // Find the highest new score
-                        const highest = newScores.reduce((b, s) => calc(map, s) > calc(map, b) ? s : b);
-                        // If the new score is higher, set it and return the player, otherwise return null
-                        const highVal = calc(map, highest);
-                        console.log(`${player.osuname}'s highest score is ${highVal}`);
-                        if (!oldScore)
-                            player.scores.push({ score: highVal, beatmap: map.mapId });
-                        else if (highVal > oldScore.score)
-                            player.scores[oldIndex].score = highVal;
-                        else
-                            return;
-                        return player;
-                    })
+                    await db.map((pp): Promise<DbPlayer> =>
+                        // I'd like so space players out by 1 second each, rather than hitting the api
+                        // with everything right off the bat. So this is a similar setTimeout trick as
+                        // I did with maps, but because the new updated value of a player is important
+                        // I need to find a way to return it.
+                        new Promise(resolve =>
+                            setTimeout(async (player: DbPlayer, map: MappackMap) => {
+                                console.log(`Looking ${player.osuname} on ${map.mapId} ${map.version}`);
+                                // If the player has an updated score, return them as a DbPlayer
+                                const oldIndex = player.scores.findIndex(s => s.beatmap === map.mapId);
+                                const oldScore = player.scores[oldIndex];
+                                console.log(`Old score is ${inspect(oldScore)}`);
+                                const newScores = await Score.getFromApi(map.mapId, player.osuid);
+                                if (newScores.length < 1)
+                                    return resolve(null);
+                                // Find the highest new score
+                                const highest = newScores.reduce((b, s) => calc(map, s) > calc(map, b) ? s : b);
+                                // If the new score is higher, set it and return the player, otherwise return null
+                                const highVal = calc(map, highest);
+                                console.log(`${player.osuname}'s highest score is ${highVal}`);
+                                if (!oldScore)
+                                    player.scores.push({ score: highVal, beatmap: map.mapId });
+                                else if (highVal > oldScore.score)
+                                    player.scores[oldIndex].score = highVal;
+                                else
+                                    return resolve(null);
+                                resolve(player);
+                            }, seconds(i++), pp, pm)
+                        )
+                    )
                 ).then((u: DbPlayer[]) => u.filter(p => p));
                 // Now players can be updated
                 if (updates.length > 0)

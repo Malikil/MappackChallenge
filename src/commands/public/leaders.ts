@@ -76,7 +76,7 @@ export default class implements Command {
             resultEmbed.addField(
                 "Your Ranks",
                 ranks.map(r =>
-                    `_${titles[r.mode]}_  **${r.pos}.** ${r.score.toFixed(1)}`
+                    `**${titles[r.mode]} #${r.pos}.** ${r.score.toFixed(1)}`
                 ).join("\n")
             );
         }
