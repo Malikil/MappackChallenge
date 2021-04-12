@@ -5,12 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon --exec \"npm run devcompile\" -e ts",
-    "start": "nodemon --exec \"npm run compile\"",
-	"local": "nodemon --exec \"npm run localcompile\" -e ts",
+    "start": "tsc && heroku local",
+	"local": "nodemon --exec \"npm run compile\" -e ts",
     "postinstall": "tsc",
     "devcompile": "tsc && heroku local -f Procfile.test -e .env.local",
-    "compile": "tsc && heroku local",
-	"localcompile": "tsc && heroku local -e .env.local"
+    "compile": "tsc && heroku local -e .env.local"
   },
   "keywords": [],
   "author": "Eric",
