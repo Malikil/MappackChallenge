@@ -38,7 +38,8 @@ export default class implements Command {
         const maps = await Promise.all(args.map(
             async (msid): Promise<MappackMapset> => {
                 const setId = parseInt(msid);
-                const mapset = await Beatmap.getMapset(setId);
+                const mapset = (await Beatmap.getMapset(setId))
+                    .filter(m => m.mode === mode || m.mode === Mode.osu);
                 return {
                     setId,
                     artist: mapset[0].artist,
