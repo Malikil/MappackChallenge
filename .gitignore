@@ -1,6 +1,7 @@
 # Files for testing locally
 Procfile.test
 src/test.ts
+.env.*
 
 # Logs
 logs
