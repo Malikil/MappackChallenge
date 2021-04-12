@@ -3,7 +3,7 @@ import db, { getCurrentPacks, moveToNextPack, ready as dbReady } from './databas
 import Score from './bancho/score';
 import { DbPlayer, MappackMap, MappackMapset } from './types';
 import Mods from './bancho/mods';
-import { Rank } from './bancho/enums';
+import { Mode, Rank } from './bancho/enums';
 import { inspect } from 'util';
 import { DMChannel, MessageEmbed, NewsChannel, TextChannel } from 'discord.js';
 
@@ -126,40 +126,47 @@ function nextPack(channel?: TextChannel) {
         channel.send("Beginning final scores update and switching to next mappack!");
     updateScores().then(async timer => {
         if (channel) {
-            const oldPack = (await getCurrentPacks()).reduce((arr, c) =>
-            arr.concat(c.maps)
-        , <MappackMapset[]>[])
-                .reduce((arr, mp) => arr.concat(mp.versions), <MappackMap[]>[])
-                .map(m => m.mapId);
+            const oldPacks = await getCurrentPacks();
             setTimeout(async () => {
                 // Display leaderboard
                 const curResults: {
                     player: string,
-                    score: number
+                    scores: { [mode: number]: number }
                 }[] = (await db.filter(p => p.scores.length > 0))
                     .map(p => {
                         let scoreSum = p.scores.reduce((s, c) => {
-                            if (oldPack.includes(c.beatmap))
-                                return s + c.score;
+                            let pack = oldPacks.find(p =>
+                                p.maps.find(m =>
+                                    m.versions.find(v => v.mapId === c.beatmap)
+                                )
+                            );
+                            if (pack)
+                                s[pack.mode] = (s[pack.mode] || 0) + c.score;
                             return s;
-                        }, 0);
+                        }, <{ [mode: number]: number }>{});
                         return {
                             player: p.osuname,
-                            score: scoreSum
+                            scores: scoreSum
                         };
-                    }).filter(p => p.score > 0);
-                curResults.sort((a, b) => a.score - b.score);
+                    });
                 const resultEmbed = new MessageEmbed()
-                    .setTitle("Current Standings")
+                    .setTitle("Final Standings:")
                     .setColor("#0044aa");
         
-                // Display the current top 10
-                resultEmbed.addField(
-                    "Top 10 Leaderboard",
-                    curResults.slice(0, 10).reduce((p, c, i) => 
-                        `${p}\n**${i + 1}.** ${c.player} - ${c.score.toFixed(1)}`
-                    , '') || '\u200b'
-                );
+                // Display the current top 10s
+                oldPacks.forEach((p, i) => {
+                    resultEmbed.addField(
+                        `${p.packName}`,
+                        curResults.sort((a, b) => b.scores[p.mode] - a.scores[p.mode])
+                            .filter(s => s.scores[p.mode])
+                            .slice(0, 20).reduce((str, c, i) => 
+                                `${str}\n**${i + 1}.** ${c.player} - ${c.scores[p.mode].toFixed(1)}`
+                            , '') || '\u200b',
+                        true
+                    );
+                    if (i % 3 === 1)
+                        resultEmbed.addField("\u200b", "\u200b", true);
+                });
 
                 channel.send(resultEmbed);
             }, minutes((timer + 1) / TIMER_TICKS));

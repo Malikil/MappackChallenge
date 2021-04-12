@@ -30,6 +30,8 @@ client.on('ready', () => {
     const announceChannel = client.channels.cache.get(process.env.CHANNEL_ANNOUNCE);
     if (announceChannel && announceChannel.isText())
         actions.startActions(announceChannel);
+    else
+        actions.startActions();
 });
 
 client.on('message', msg => {

@@ -174,6 +174,7 @@ async function filter(predicate: (p: DbPlayer) => boolean) {
 //#endregion
 
 export default {
+    ready,
     addPlayer,
     removePlayer,
     getPlayer,
