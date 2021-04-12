@@ -55,7 +55,7 @@ export default class implements Command {
                     , '') || '\u200b',
                 true
             );
-            if (i % 3 === 1)
+            if (i % 2 === 1)
                 resultEmbed.addField("\u200b", "\u200b", true);
             if (currentPlayer) {
                 const pos = curResults.findIndex(pl => pl.player === currentPlayer.osuname) + 1;
