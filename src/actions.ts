@@ -1,4 +1,4 @@
-import { delay, seconds, hours, days, minutes } from './helpers/mstime';
+import { seconds, hours, days, minutes } from './helpers/mstime';
 import db, { getCurrentPacks, moveToNextPack, ready as dbReady } from './database-manager';
 import Score from './bancho/score';
 import { DbPlayer, MappackMap, MappackMapset } from './types';
@@ -72,7 +72,7 @@ function calc(m: MappackMap, s: Score) {
     return pointValue;
 }
 
-const TIMER_TICKS = 4;
+const TIMER_TICKS = 8;
 async function updateScores() {
     console.log("Beginning update scores");
     // Get maps from maplist
@@ -103,21 +103,26 @@ async function updateScores() {
                                 const oldIndex = player.scores.findIndex(s => s.beatmap === map.mapId);
                                 const oldScore = player.scores[oldIndex];
                                 console.log(`Old score is ${inspect(oldScore)}`);
-                                const newScores = await Score.getFromApi(map.mapId, player.osuid, null, mapMode);
-                                if (newScores.length < 1)
-                                    return resolve(null);
-                                // Find the highest new score
-                                const highest = newScores.reduce((b, s) => calc(map, s) > calc(map, b) ? s : b);
-                                // If the new score is higher, set it and return the player, otherwise return null
-                                const highVal = calc(map, highest);
-                                console.log(`${player.osuname}'s highest score is ${highVal}`);
-                                if (!oldScore)
-                                    player.scores.push({ score: highVal, beatmap: map.mapId });
-                                else if (highVal > oldScore.score)
-                                    player.scores[oldIndex].score = highVal;
-                                else
-                                    return resolve(null);
-                                resolve(player);
+                                try {
+                                    const newScores = await Score.getFromApi(map.mapId, player.osuid, null, mapMode);
+                                    if (newScores.length < 1)
+                                        return resolve(null);
+                                    // Find the highest new score
+                                    const highest = newScores.reduce((b, s) => calc(map, s) > calc(map, b) ? s : b);
+                                    // If the new score is higher, set it and return the player, otherwise return null
+                                    const highVal = calc(map, highest);
+                                    console.log(`${player.osuname}'s highest score is ${highVal}`);
+                                    if (!oldScore)
+                                        player.scores.push({ score: highVal, beatmap: map.mapId });
+                                    else if (highVal > oldScore.score)
+                                        player.scores[oldIndex].score = highVal;
+                                    else
+                                        return resolve(null);
+                                    resolve(player);
+                                } catch (err) {
+                                    console.error(err);
+                                    resolve(null);
+                                }
                             }, seconds(i++), pp, pm, mode)
                         )
                     )
