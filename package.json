@@ -6,7 +6,7 @@
   "scripts": {
     "test": "nodemon --exec \"npm run devcompile\" -e ts",
     "start": "tsc && heroku local",
-	"local": "nodemon --exec \"npm run compile\" -e ts",
+    "local": "nodemon --exec \"npm run compile\" -e ts",
     "postinstall": "tsc",
     "devcompile": "tsc && heroku local -f Procfile.test -e .env.local",
     "compile": "tsc && heroku local -e .env.local"
@@ -22,7 +22,8 @@
   "devDependencies": {
     "@types/mongodb": "^3.6.12",
     "@types/node": "^14.14.37",
-    "@types/node-fetch": "^2.5.10"
+    "@types/node-fetch": "^2.5.10",
+    "typescript": "^4.2.4"
   },
   "engines": {
     "node": "13.5.0"
